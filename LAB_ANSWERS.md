@@ -24,3 +24,6 @@ After running `dvc add data`, DVC added `/data` to `.gitignore`. This tells Git 
 
 Yes, DVC created a `data.dvc` file. It contains metadata about the tracked dataset, including its MD5 hash, total size, number of files, hashing method, and path. In this case, the dataset contains 16,643 files and is about 1.19 GB. The `data.dvc` file does not contain the actual images; it allows DVC to identify and manage the correct version of the data.
 
+## Question 6
+
+The code and Git-tracked project files are stored in GitHub, while the actual Food-11 dataset is stored using DVC in DagsHub Storage. The file data.dvc is stored in Git and acts as a pointer containing metadata that identifies the DVC-tracked data. In DagsHub, the data is recognized as DVC-tracked data and can be accessed through the Data/DVC interface.
