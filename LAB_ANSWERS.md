@@ -15,3 +15,12 @@ The files needed by Git should be committed to GitHub, including the DVC configu
 When using `--global`, the DVC credentials are stored in the user's global DVC configuration rather than in the project repository. This keeps the credentials outside the Git repository.
 
 Another option is `--local`, which stores the settings in the project's local DVC configuration. The credentials should **never be pushed to GitHub**, especially because the repository is public. Only non-sensitive DVC configuration should be committed.
+
+## Question 4
+
+After running `dvc add data`, DVC added `/data` to `.gitignore`. This tells Git to ignore the actual data folder so that the large Food-11 dataset is not tracked or uploaded directly to GitHub. Instead, DVC tracks the dataset and creates `data.dvc`, which is a small file containing information used by DVC to identify and manage the data.
+
+## Question 5
+
+Yes, DVC created a `data.dvc` file. It contains metadata about the tracked dataset, including its MD5 hash, total size, number of files, hashing method, and path. In this case, the dataset contains 16,643 files and is about 1.19 GB. The `data.dvc` file does not contain the actual images; it allows DVC to identify and manage the correct version of the data.
+
