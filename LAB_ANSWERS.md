@@ -9,3 +9,9 @@
 DVC creates the `.dvc` directory and `.dvcignore` file. The `.dvc` directory contains DVC configuration and internal files. The `.dvc/config` file contains the DVC repository configuration, while `.dvc/.gitignore` prevents DVC internal files from being tracked unnecessarily. `.dvcignore` specifies files that DVC should ignore.
 
 The files needed by Git should be committed to GitHub, including the DVC configuration files and `.dvcignore`. The actual large datasets will be stored by DVC rather than directly in GitHub.
+
+## Question 3
+
+When using `--global`, the DVC credentials are stored in the user's global DVC configuration rather than in the project repository. This keeps the credentials outside the Git repository.
+
+Another option is `--local`, which stores the settings in the project's local DVC configuration. The credentials should **never be pushed to GitHub**, especially because the repository is public. Only non-sensitive DVC configuration should be committed.
