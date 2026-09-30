@@ -1,4 +1,5 @@
 import argparse
+import os
 from pathlib import Path
 import mlflow
 import mlflow.pytorch
@@ -24,7 +25,7 @@ def get_data_dir(dataset_type):
 def main():
     args = parse_args()
 
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
     mlflow.set_experiment("food11")
 
     data_dir = get_data_dir(args.dataset)

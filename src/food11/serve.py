@@ -1,5 +1,7 @@
 import io
+import logging
 import os
+import time
 from typing import Any
 
 import mlflow
@@ -16,6 +18,7 @@ mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
 app = FastAPI(title="Food11 Serving API")
 model: Any = None
+logger = logging.getLogger(__name__)
 
 IMAGE_TRANSFORM = transforms.Compose(
     [
@@ -43,7 +46,15 @@ CLASS_NAMES = [
 @app.on_event("startup")
 def load_model() -> None:
     global model
-    model = mlflow.pyfunc.load_model(MODEL_URI)
+    for attempt in range(12):
+        try:
+            model = mlflow.pyfunc.load_model(MODEL_URI)
+            return
+        except Exception:
+            if attempt == 11:
+                raise
+            logger.warning("MLflow model unavailable; retrying startup in 5 seconds")
+            time.sleep(5)
 
 
 @app.get("/health")
