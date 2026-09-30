@@ -1,7 +1,7 @@
 
 Question 1
 
-The registered model version was 1. The run’s logged model artifact is the actual model file saved as part of one specific training run in MLflow. A registered model is a named model in the Model Registry, with its own versioning and metadata, so it can be promoted, referenced, and reused independently of the training run that produced it.
+The built multi-stage image, `food11-api:latest`, is 440,968,989 bytes (about 421 MiB) according to `docker image inspect`. `docker history` shows the copied runtime virtual environment as the largest layer (1.49 GB in virtual layer size); the source-code layer is only 57.3 kB. I did not build a separate naive single-stage image, so an exact size difference has not been measured. The multi-stage build keeps the `uv` installer and builder-stage files out of the runtime image.
 
 Question 2
 
@@ -21,7 +21,7 @@ A naive single-stage Docker image is typically much larger because it includes b
 
 Question 6
 
-If .dockerignore is omitted, the build context becomes much larger and slower to transfer to the Docker daemon. It also increases image size and rebuild time because unnecessary files get copied into the build context. Excluding folders like .venv, data, mlruns, .git, and __pycache__ prevents huge unnecessary payloads. Of those, .venv and mlruns are particularly bad because they can be very large and are not needed in the final runtime image. If they were sent to the Docker daemon, the build would be slower and could waste disk space or even break the build in some cases.
+Without `.dockerignore`, Docker would send the local venv, datasets, MLflow artifacts, Git metadata, and generated files in the build context, making context transfer and cache invalidation slower. This build transferred about 829 kB with the ignore rules. In this Dockerfile, those extra files would not by themselves break the build because it explicitly copies only `pyproject.toml`, `uv.lock`, and `src/`; they would mainly waste transfer time. They could affect the image if a broad `COPY . .` were added.
 
 Question 7
 
@@ -29,7 +29,7 @@ The container cannot use 127.0.0.1:5000 to reach the MLflow server on the host b
 
 Question 8
 
-Stopping the container and starting a new one from the same image should still work without rebuilding as long as the MLflow server is still reachable. That is because the app is not loading the model directly from a baked-in local file; it is resolving a model via the MLflow registry at runtime using the model alias. This tells us that the image contains the code and runtime environment, while the model itself is fetched at runtime from MLflow.
+I removed and recreated the API container from `food11-api:latest` without rebuilding it; after model loading, `/health` returned `{"status":"ok"}` and `/predict` returned a prediction. MLflow must remain reachable, and for this local Windows file-backed store I also mounted the existing `mlruns` directory into the container because the registered model source is a host-local file URI. The image contains the code and runtime environment; the model is resolved from MLflow at runtime rather than baked into the image.
 
 Question 9
 

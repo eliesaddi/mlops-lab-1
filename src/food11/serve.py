@@ -71,6 +71,11 @@ async def predict(file: UploadFile = File(...)) -> dict[str, Any]:
     probs = np.asarray(prediction).squeeze()
     if probs.ndim == 0:
         probs = np.asarray([float(probs)])
+    if probs.ndim == 1 and len(probs) > 1:
+        probs = _normalize_scores(probs)
+    elif probs.ndim == 2 and probs.shape[0] == 1:
+        probs = _normalize_scores(probs[0])
+
     if probs.ndim == 1 and len(probs) == 1:
         label_index = 0
         confidence = float(probs[0])
@@ -86,6 +91,15 @@ async def predict(file: UploadFile = File(...)) -> dict[str, Any]:
 
     predicted_label = CLASS_NAMES[label_index]
     return {"category": predicted_label, "confidence": confidence}
+
+
+def _normalize_scores(scores: np.ndarray) -> np.ndarray:
+    scores = np.asarray(scores, dtype=np.float64)
+    if np.all(scores >= 0) and np.isclose(scores.sum(), 1.0):
+        return scores
+
+    exp_scores = np.exp(scores - np.max(scores))
+    return exp_scores / exp_scores.sum()
 
 
 def _run_prediction(tensor: np.ndarray) -> Any:
