@@ -34,7 +34,7 @@ The publishing job grants only read access to repository contents and write acce
 
 ## Question 9
 
-After branch protection is enabled, the pull request should show the `test` and `smoke` checks, and a deliberately broken test should be red. A required failing check prevents merging until it passes. I have not configured the repository's branch protection or opened the demonstration pull request yet; those settings require repository-owner access. Compared with relying on each developer to remember local tests, required checks apply the same merge gate to every contributor.
+The demonstration PR showed `test` failing and `smoke` skipped because it depends on `test`; the required checks blocked merging. After I fixed the category mapping and pushed again, both `test` and `smoke` passed and merging became available. The main-only image-publishing job was skipped on the feature branch. Compared with relying on each developer to remember local tests, required checks apply the same merge gate to every contributor.
 
 ## Question 10
 
