@@ -2,14 +2,15 @@ import io
 import logging
 import os
 import time
-from typing import Any
+from typing import Annotated, Any
 
-import mlflow
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image
 from torchvision import transforms
+
+import mlflow
 
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
 MODEL_URI = "models:/food11@champion"
@@ -46,6 +47,8 @@ CLASS_NAMES = [
 @app.on_event("startup")
 def load_model() -> None:
     global model
+    if os.environ.get("SKIP_MODEL"):
+        return
     for attempt in range(12):
         try:
             model = mlflow.pyfunc.load_model(MODEL_URI)
@@ -63,7 +66,7 @@ def health() -> dict[str, str]:
 
 
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)) -> dict[str, Any]:
+async def predict(file: Annotated[UploadFile, File()]) -> dict[str, Any]:
     if model is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
 
@@ -127,7 +130,15 @@ def _run_prediction(tensor: np.ndarray) -> Any:
         ):
             try:
                 return fn(candidate)
-            except Exception:
+            except (
+                AttributeError,
+                IndexError,
+                KeyError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as exc:
+                logger.debug("Model prediction input variant failed: %s", exc)
                 continue
 
     raise RuntimeError("Model prediction did not return a valid output")

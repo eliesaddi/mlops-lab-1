@@ -1,13 +1,15 @@
 import argparse
 import os
 from pathlib import Path
-import mlflow
+
 import mlflow.pytorch
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
+
+import mlflow
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train ResNet18 on Food-11")
