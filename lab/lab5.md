@@ -10,11 +10,11 @@ The API test proves that the endpoint accepts an uploaded image, calls the injec
 
 ## Question 3
 
-The cross-split duplicate check catches identical file content by hash. A duplicate can leak examples between training and evaluation and make test accuracy look better than performance on genuinely unseen images, while a corrupted image usually causes an immediate, visible decoding error. The validator's synthetic test passed on a clean dataset and failed after I copied a training image into evaluation. The existing mini dataset also contains 43 cross-split duplicates, so its validation correctly fails before any additional copy is made.
+The cross-split duplicate check catches identical file content by hash. A duplicate can leak examples between training and evaluation and make test accuracy look better than performance on genuinely unseen images, while a corrupted image usually causes an immediate, visible decoding error. The validator's synthetic test passed on a clean dataset and failed after I copied a training image into evaluation. The original DVC dataset contained 611 cross-split duplicates in the full data and 43 in the mini derivative. I updated preprocessing to retain the first occurrence in training/validation/evaluation order, regenerated the derived data locally, and verified that both datasets pass all five contract checks. The DVC manifest changed, but uploading the updated cache to DagsHub stalled during remote object checking, so that data change is not committed.
 
 ## Question 4
 
-Run `validate_data.py` in the local or training environment after `dvc pull` and before training. Run it again in the data-preparation or model-release pipeline where the DVC remote is available, before evaluating or registering a model. GitHub-hosted CI cannot validate data it cannot access.
+After `dvc pull`, run `data.py` to regenerate the deduplicated derived splits, then run `validate_data.py` before training. Run the validator again in the data-preparation or model-release pipeline where the DVC remote is available, before evaluating or registering a model. GitHub-hosted CI cannot validate data it cannot access. The updated DVC cache still needs to be pushed to DagsHub; its remote check stalled in this environment.
 
 ## Question 5
 
@@ -38,7 +38,7 @@ The demonstration PR showed `test` failing and `smoke` skipped because it depend
 
 ## Question 10
 
-I trained and registered two mini-dataset candidates. Version 3 (`lr=1e-8`) logged `test_accuracy=0.1122`; version 4 (`lr=1e-4`) logged `test_accuracy=0.7655`. The current `champion` is version 2, whose source run only has `val_accuracy=0.7783` and lacks both `test_accuracy` and the `dataset` parameter. The promotion script therefore rejected both comparisons and left `champion` unchanged; no gate decisions or candidate tags were written. The mini evaluation split has 1,096 images (the full split has 3,347). For scale only, using version 4's accuracy as a hypothetical baseline gives `2 * sqrt(0.7655 * (1 - 0.7655) / 1096) = 0.0256`, or 2.56 percentage points. This is not a valid champion threshold; a champion run with test accuracy and dataset metadata is needed for the actual gate.
+The original champion (version 2) had no test metric or dataset parameter, so I evaluated it and both candidates on the same deduplicated mini evaluation split (`n=1,096`) and registered the evaluation runs. The baseline was registered as version 5 and set as `champion`, with `test_accuracy=0.8102`. Candidate version 3 (`lr=1e-8`) was reevaluated as version 6 at `0.1095`; candidate version 4 (`lr=1e-4`) was reevaluated as version 7 at `0.7573`. For the champion accuracy `p=0.8102`, `2 * se = 2 * sqrt(p * (1-p) / 1096) = 0.0237`, or 2.37 percentage points. Both candidates were below `0.8102 + 0.0237 = 0.8339`, so the gate tagged both `challenger` and left `champion` at version 5. The challenger alias now points to version 7; both versions retain their own decision and accuracy tags.
 
 ## Question 11
 

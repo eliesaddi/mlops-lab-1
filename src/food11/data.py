@@ -1,3 +1,4 @@
+import hashlib
 import shutil
 from pathlib import Path
 
@@ -40,7 +41,8 @@ def main() -> None:
         if output_dir.exists():
             shutil.rmtree(output_dir)
 
-    for split in ["training", "evaluation", "validation"]:
+    seen_hashes: dict[str, str] = {}
+    for split in ["training", "validation", "evaluation"]:
         source_dir = RAW_DIR / split
 
         for image_path in source_dir.iterdir():
@@ -62,6 +64,13 @@ def main() -> None:
 
             with Image.open(image_path) as image:
                 resize_image(image).save(output_path)
+
+            digest = hashlib.md5(output_path.read_bytes()).hexdigest()
+            previous_split = seen_hashes.get(digest)
+            if previous_split is not None and previous_split != split:
+                output_path.unlink()
+                continue
+            seen_hashes.setdefault(digest, split)
 
             if len(list(mini_category_dir.iterdir())) < 100:
                 shutil.copy2(output_path, mini_category_dir / image_path.name)
