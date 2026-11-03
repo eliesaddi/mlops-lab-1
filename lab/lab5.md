@@ -10,11 +10,11 @@ The API test proves that the endpoint accepts an uploaded image, calls the injec
 
 ## Question 3
 
-The cross-split duplicate check catches identical file content by hash. A duplicate can leak examples between training and evaluation and make test accuracy look better than performance on genuinely unseen images, while a corrupted image usually causes an immediate, visible decoding error. The validator's synthetic test passed on a clean dataset and failed after I copied a training image into evaluation. The original DVC dataset contained 611 cross-split duplicates in the full data and 43 in the mini derivative. I updated preprocessing to retain the first occurrence in training/validation/evaluation order, regenerated the derived data locally, and verified that both datasets pass all five contract checks. The DVC manifest changed, but uploading the updated cache to DagsHub stalled during remote object checking, so that data change is not committed.
+The cross-split duplicate check catches identical file content by hash. A duplicate can leak examples between training and evaluation and make test accuracy look better than performance on genuinely unseen images, while a corrupted image usually causes an immediate, visible decoding error. The validator's synthetic test passed on a clean dataset and failed after I copied a training image into evaluation. The original DVC dataset contained 611 cross-split duplicates in the full data and 43 in the mini derivative. I updated preprocessing to retain the first occurrence in training/validation/evaluation order, regenerated the derived data locally, and verified that both datasets pass all five contract checks.
 
 ## Question 4
 
-After `dvc pull`, run `data.py` to regenerate the deduplicated derived splits, then run `validate_data.py` before training. Run the validator again in the data-preparation or model-release pipeline where the DVC remote is available, before evaluating or registering a model. GitHub-hosted CI cannot validate data it cannot access. The updated DVC cache still needs to be pushed to DagsHub; its remote check stalled in this environment.
+After `dvc pull`, run `data.py` to regenerate the deduplicated derived splits, then run `validate_data.py` before training. Run the validator again in the data-preparation or model-release pipeline where the DVC remote is available, before evaluating or registering a model. GitHub-hosted CI cannot validate data it cannot access. The raw images remain DVC-tracked; the cleaned processed splits are reproducibly derived from them by `data.py`.
 
 ## Question 5
 
