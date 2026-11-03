@@ -1,15 +1,3 @@
-Bootstrap the fresh Compose registry
-
-The named volume starts empty; it does not contain the model registered in the Lab 3 host-side `mlflow.db`. For this run, I imported the existing Lab 3 registered model artifact into the new volume, registered it as `food11` version 1, and set `champion`. When starting without an existing model to import, seed the new tracking store by training a short mini-dataset run, then register its best run and set the modern alias before starting the full stack:
-
-```bash
-docker compose build
-docker compose up -d mlflow
-docker compose run --rm --no-deps -v ./data:/app/data:ro inference /app/.venv/bin/python -m src.food11.train --dataset mini --epochs 1
-docker compose run --rm --no-deps inference /app/.venv/bin/python -c "import mlflow; from mlflow import MlflowClient; mlflow.set_tracking_uri('http://mlflow:5000'); client = MlflowClient(); experiment = client.get_experiment_by_name('food11'); run = client.search_runs([experiment.experiment_id], order_by=['metrics.val_accuracy DESC'], max_results=1)[0]; version = mlflow.register_model(f'runs:/{run.info.run_id}/model', 'food11'); client.set_registered_model_alias('food11', 'champion', version.version); print('champion version', version.version)"
-docker compose up -d
-```
-
 Question 1
 
 Without a mounted volume, `/mlflow-data` is part of that container's writable layer. I tested this with a disposable marker file: after removing the first container, a new container from the same image reported `NEW_CONTAINER_EMPTY`. Removing an unmounted MLflow container similarly discards its database and artifacts, so the new container starts with an empty tracking store.
