@@ -22,7 +22,7 @@ If a test fails, the `smoke` job is skipped because it has `needs: test`. Withou
 
 ## Question 6
 
-Record the elapsed time for the first and second workflow runs from the GitHub Actions run summary. The second run should benefit from the `setup-uv` dependency cache and Docker BuildKit cache. The timings are pending the first GitHub Actions run.
+The first successful run (workflow run 2) took 5m58s. The empty-commit run (workflow run 3) took 2m29s. The `docker/build-push-action` step was the clearest improvement: 3m16s on run 2 and 7s on run 3, because BuildKit restored its GitHub Actions layer cache. The `uv sync` step took 4s in both runs; the test job dropped from 24s to 21s.
 
 ## Question 7
 
