@@ -38,7 +38,7 @@ After branch protection is enabled, the pull request should show the `test` and 
 
 ## Question 10
 
-The promotion gate cannot yet be run against the current `champion`: its MLflow source run has `val_accuracy` but no `test_accuracy` or `dataset` parameter. Those fields are required for a valid comparison, so I left the alias unchanged and made the script report this missing metadata. The mini evaluation split currently has 1,096 images and the full split has 3,347. For a mini run, the threshold is `2 * sqrt(p * (1 - p) / 1096)`, where `p` is the champion's test accuracy; actual candidate decisions and threshold points must be recorded after a champion run with the required metric and dataset parameter is registered.
+I trained and registered two mini-dataset candidates. Version 3 (`lr=1e-8`) logged `test_accuracy=0.1122`; version 4 (`lr=1e-4`) logged `test_accuracy=0.7655`. The current `champion` is version 2, whose source run only has `val_accuracy=0.7783` and lacks both `test_accuracy` and the `dataset` parameter. The promotion script therefore rejected both comparisons and left `champion` unchanged; no gate decisions or candidate tags were written. The mini evaluation split has 1,096 images (the full split has 3,347). For scale only, using version 4's accuracy as a hypothetical baseline gives `2 * sqrt(0.7655 * (1 - 0.7655) / 1096) = 0.0256`, or 2.56 percentage points. This is not a valid champion threshold; a champion run with test accuracy and dataset metadata is needed for the actual gate.
 
 ## Question 11
 
